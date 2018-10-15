@@ -32,5 +32,5 @@ MongoClient.connect('mongodb://localhost:27017/CreditCardApp', (err, client) => 
     //     console.log(result.ops[0]._id.getTimestamp()); 
     // });
 
-    client.close(); 
+    //client.close(); 
 });
