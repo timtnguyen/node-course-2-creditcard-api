@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 
 mongoose.Promise = global.Promise;
 
-mongoose.connect('mongodb://localhost/CreditCardApp', {
+mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost/CreditCardApp', {
         useNewUrlParser: true
     })
     .then(() => {
