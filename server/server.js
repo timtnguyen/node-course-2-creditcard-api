@@ -12,7 +12,7 @@ app.use(bodyParser.json());
 app.get('/cards', (req, res) => {
     CreditCard.find()
         .then((cards) => {
-            res.send(cards);
+            res.send({cards});
         }, (err) => {
             res.status(400).send(err);
         });
