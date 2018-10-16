@@ -1,3 +1,4 @@
+const { ObjectID } = require('mongodb'); 
 const { mongoose } = require('./db/mongoose'); 
 const { CreditCard } = require('./models/creditcard');
 const { User } = require('./models/user'); 
@@ -31,6 +32,24 @@ app.post('/cards', (req, res) => {
             res.status(400).send(err); 
         });
 }); 
+
+// bc53c883b86f7048bc3966a
+app.get('/cards/:id', (req, res) => {
+    let id = req.params.id;
+    if (!ObjectID.isValid(id)) {
+        return res.status(404).send('Id not valid'); 
+    }
+
+    CreditCard.findById(id)
+        .then((card) => {
+            if (!card) {
+                return res.status(404).send(); 
+            }
+            res.send({card}); 
+        }).catch((err) => {
+            res.status(400).send(err);
+        });
+});
 
 let port = process.env.PORT || 3000;
 
