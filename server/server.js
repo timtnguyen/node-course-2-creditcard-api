@@ -51,6 +51,24 @@ app.get('/cards/:id', (req, res) => {
         });
 });
 
+app.delete('/cards/:id', (req, res) => {
+    let id = req.params.id;
+
+    if (!ObjectID.isValid(id)) {
+        return res.status(404).send('ID not valid'); 
+    }
+    CreditCard.findByIdAndRemove(id) 
+        .then((card) => {
+            if (!card) {
+                return res.status(404).send(); 
+            }
+            res.send(card); 
+        }).catch((err) => {
+            res.status(400).send('Something wrong', err);
+        });
+})
+
+//https://git.heroku.com/polar-reef-69029.git
 let port = process.env.PORT || 3000;
 
 app.listen(port, () => {
