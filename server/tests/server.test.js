@@ -114,5 +114,53 @@ describe('GET /cards/:id', () => {
     });
 });
 
+describe('DELETE /cards/:id', () => {
+    it('Should remove a card', (done) => {
+        let hexId = cards[1]._id.toHexString();
+
+        request(app)
+            .delete(`/cards/${hexId}`)
+            .expect(200)
+            .expect((res) => {
+                expect(res.body.card._id).toBe(hexId);
+                done();
+            })
+            .end((err, res) => {
+                if (err) {
+                    return done(err); 
+                }
+            });
+
+    });
+
+    it('Should return 404 if card not found', (done) => {
+        request(app)
+            .delete(`/cards/123`)
+            .expect(404)
+            .end(done); 
+    });
+
+    it('Should return 404 if ObjectID is invalid', (done) => {
+        let hexId = cards[1]._id.toHexString();
+    
+        if (!ObjectID.isValid(hexId)) {
+            return res.status(404).send()
+        }
+
+        request(app)
+            .delete(`/cards/${hexId}`)
+            .expect(200)
+            .expect((res) => {
+                expect(res.body.card._id).toBe(hexId); 
+                done(); 
+            })
+            .end((err, res) => {
+                if (err) {
+                    return done(err); 
+                }
+            });
+    });
+});
+
 
 
