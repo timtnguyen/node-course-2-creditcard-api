@@ -143,6 +143,7 @@ describe('DELETE /cards/:id', () => {
 
     it('Should return 404 if ObjectID is invalid', (done) => {
         let hexId = cards[1]._id.toHexString();
+
     
         if (!ObjectID.isValid(hexId)) {
             return res.status(404).send()
@@ -162,6 +163,31 @@ describe('DELETE /cards/:id', () => {
             });
     });
 });
+
+describe('PATCH /cards/:id', () => {
+    it('should update card', (done) => {
+        let hexId = cards[1]._id.toHexString();
+        let newCard = 'Chase Freedom';  
+
+        request(app) 
+            .patch(`/cards/${hexId}`)
+            .send({
+                card: newCard
+            })
+            .expect(200)
+            .expect((res) => {
+                expect(res.body.card).toBe(newCard); 
+                done(); 
+            })
+            .end((err, res) => {
+                if (err) {
+                    return done(err); 
+                }
+            });
+    });
+});
+
+
 
 
 
