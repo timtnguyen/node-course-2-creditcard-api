@@ -2,6 +2,7 @@ const { ObjectID } = require('mongodb');
 const { mongoose } = require('./db/mongoose'); 
 const { CreditCard } = require('./models/creditcard');
 const { User } = require('./models/user'); 
+const _ = require('lodash'); 
 
 const express = require('express');
 const bodyParser = require('body-parser'); 
@@ -66,7 +67,32 @@ app.delete('/cards/:id', (req, res) => {
         }).catch((err) => {
             res.status(400).send('Something wrong', err);
         });
-})
+});
+
+app.patch('/cards/:id', (req, res) => {
+    let id = req.params.id; 
+    let body = _.pick(req.body, ['card', 'balance']);
+
+    if (!ObjectID.isValid(id)) {
+        return res.status(404).send(); 
+    }
+ 
+    CreditCard.findByIdAndUpdate(id, {
+        $set: {
+            card: req.body.card,
+            balance: req.body.balance
+        }
+    }, {
+        new: true
+    }).then((card) => {
+        if (!card) {
+            return res.status(404).send();
+        }
+        res.send(card); 
+    }).catch((err) => {
+        res.status(400).send(err); 
+    });     
+});
 
 //https://git.heroku.com/polar-reef-69029.git
 let port = process.env.PORT || 3000;
