@@ -1,13 +1,30 @@
+// const env = process.env.NODE_ENV || 'development'; 
+
+// console.log('env ***', env); 
+
+// if (env === 'development') {
+//     process.env.PORT = 3000; 
+//     process.env.MONGO_URI = 'mongodb://localhost/CreditCardApp';
+// } else if (env === 'test') {
+//     process.env.PORT = 3000; 
+//     process.env.MONGO_URI = 'mongodb://localhost/CreditCardAppTest';
+// }
+
 const { ObjectID } = require('mongodb'); 
-const { mongoose } = require('./db/mongoose'); 
+const mongoose  = require('./db/mongoose'); 
 const { CreditCard } = require('./models/creditcard');
 const { User } = require('./models/user'); 
+const { Expense, validateExpense } = require('./models/expense'); 
 const _ = require('lodash'); 
+const Fawn = require('fawn'); 
 
 const express = require('express');
 const bodyParser = require('body-parser'); 
 
+
 let app = express(); 
+
+Fawn.init(mongoose); 
 
 app.use(bodyParser.json()); 
 
@@ -92,6 +109,54 @@ app.patch('/cards/:id', (req, res) => {
     }).catch((err) => {
         res.status(400).send(err); 
     });     
+});
+
+// EXPENSE ROUTES 
+
+app.get('/expenses', (req, res) => {
+    Expense.find()
+        .then((expenses) => {
+            res.send({expenses})
+        }, (err) => {
+            res.status(400).send(err); 
+        });
+});
+
+app.post('/expenses', (req, res) => {
+    const result = validateExpense(req.body);
+    if (result.error) {
+        return res.status(400).send(result.error.details[0].message);
+    }
+
+    const card = CreditCard.findById(req.body.cardId)
+                     .then((card) => {
+                         console.log(card);
+                         return card; 
+                     }, (err) => {
+                         res.status(400).send()
+                     });
+    
+    let newExpense = new Expense({
+        item: req.body.item,
+        total: req.body.total,
+        card: {
+            _id: card._id,
+            card: card.card,
+            balance: card.balance
+        }
+    });
+
+    try {
+        new Fawn.Task()
+            .save('expenses', newExpense)
+            .update('cards', { _id: card._id }, {
+                $inc: { balance: +newExpense.total }
+            })
+            .run(); 
+            res.send(newExpense); 
+    } catch(ex) {
+        res.status(500).send('Something failed'); 
+    }
 });
 
 //https://git.heroku.com/polar-reef-69029.git
