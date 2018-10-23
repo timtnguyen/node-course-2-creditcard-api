@@ -122,19 +122,16 @@ app.get('/expenses', (req, res) => {
         });
 });
 
-app.post('/expenses', (req, res) => {
+app.post('/expenses', async (req, res) => {
     const result = validateExpense(req.body);
     if (result.error) {
         return res.status(400).send(result.error.details[0].message);
     }
 
-    const card = CreditCard.findById(req.body.cardId)
-                     .then((card) => {
-                         console.log(card);
-                         return card; 
-                     }, (err) => {
-                         res.status(400).send()
-                     });
+    let card = await CreditCard.findById(req.body.cardId);
+    if (!card) {
+        res.status(400).send('Invalid card'); 
+    }
     
     let newExpense = new Expense({
         item: req.body.item,
@@ -142,14 +139,14 @@ app.post('/expenses', (req, res) => {
         card: {
             _id: card._id,
             card: card.card,
-            balance: card.balance
+            balance: card.balance + req.body.total
         }
     });
 
     try {
         new Fawn.Task()
             .save('expenses', newExpense)
-            .update('cards', { _id: card._id }, {
+            .update('creditcards', { _id: card._id }, {
                 $inc: { balance: +newExpense.total }
             })
             .run(); 

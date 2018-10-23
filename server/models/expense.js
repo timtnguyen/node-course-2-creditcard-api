@@ -1,5 +1,5 @@
 const mongoose = require('mongoose'); 
-const { CreditCardSchema } = require('./creditcard'); 
+const { creditCardSchema } = require('./creditcard'); 
 const Joi = require('joi'); 
 
 const ExpenseSchema = new mongoose.Schema({
@@ -17,7 +17,7 @@ const ExpenseSchema = new mongoose.Schema({
         max: 10000
     }, 
     card: {
-        type: CreditCardSchema,
+        type: creditCardSchema,
         required: true
     }, 
     date: {
@@ -25,17 +25,17 @@ const ExpenseSchema = new mongoose.Schema({
         default: Date.now
     }
 });
-const Expense = mongoose.model('Expense', ExpenseSchema); 
 
 const validateExpense = (expense) => {
     const schema = {
-        cardId: Joi.string().required(),
         item: Joi.string().min(1).max(250).required(),
-        total: Joi.number().min(0).max(10000).required()
+        total: Joi.number().min(0).max(10000).required(),
+        cardId: Joi.string().required()
     }
     return Joi.validate(expense, schema); 
 }
 
+const Expense = mongoose.model('Expense', ExpenseSchema); 
 
 module.exports.Expense = Expense; 
 module.exports.validateExpense = validateExpense;
