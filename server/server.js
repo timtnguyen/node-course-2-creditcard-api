@@ -15,6 +15,7 @@ const mongoose  = require('./db/mongoose');
 const { CreditCard } = require('./models/creditcard');
 const { User } = require('./models/user'); 
 const { Expense, validateExpense } = require('./models/expense'); 
+const { Payment, validatePayment } = require('./models/payment'); 
 const _ = require('lodash'); 
 const Fawn = require('fawn'); 
 
@@ -199,6 +200,88 @@ app.patch('/expenses/:id', (req, res) => {
     });
 });
 
+// PAYMENT ROUTES
+
+app.get('/payments', (req, res) => {
+    Payment.find()
+        .then((payment) => {
+            res.send({payment}); 
+        }, (err) => {
+            res.status(400).send(err); 
+        });
+});
+
+app.post('/payments', (req, res) => {
+    const result = validatePayment(req.body);
+    if (result.error) {
+        return res.status(400).send(result.error.details[0].message); 
+    }
+
+    CreditCard.findById(req.body.cardId)
+        .then((card) => {
+            if (!card) {
+                return res.status(400).send('Invalid card'); 
+            }
+
+            let newPayment = new Payment({
+                amount: req.body.amount,
+                card: {
+                    _id: card._id,
+                    card: card.card,
+                    balance: card.balance - req.body.amount
+                }
+            });
+            new Fawn.Task()
+                .save('payments', newPayment)
+                .update('creditcards', { _id: card._id}, {
+                    $inc: { balance: -newPayment.amount }
+                })
+                .run();
+                res.send(newPayment); 
+        })
+        .catch((err) => {
+            res.status(500).send('Something failed'); 
+        });
+}); 
+
+app.delete('/payments/:id', (req, res) => {
+    let id = req.params.id;
+    if (!ObjectID.isValid(id)) {
+        return res.status(404).send(); 
+    }
+
+    Payment.findByIdAndRemove(id)
+        .then((payment) => {
+            res.send(payment); 
+        })
+        .catch((err) => {
+            res.status(404).send('Something wrong', err); 
+        });
+}); 
+
+app.patch('/payments/:id', (req, res) => {
+    let id = req.params.id;
+    let body = _.pick(req.body, ['amount']); 
+
+    if (!ObjectID.isValid(id)) {
+        return res.status(404).send('Invalid ID'); 
+    }
+
+    Payment.findByIdAndUpdate(id, {
+        $set: {
+            amount: req.body.amount
+        }
+    }, {
+        new: true
+    }).then((payment) => {
+        if (!payment) {
+            return res.status(404).send()
+        }
+        res.send(payment); 
+    }).catch((err) => {
+        res.status(400).send(err); 
+    });       
+});
 
 
 //https://git.heroku.com/polar-reef-69029.git
