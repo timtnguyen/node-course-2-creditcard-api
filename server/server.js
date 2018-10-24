@@ -122,39 +122,84 @@ app.get('/expenses', (req, res) => {
         });
 });
 
-app.post('/expenses', async (req, res) => {
+app.post('/expenses', (req, res) => {
     const result = validateExpense(req.body);
     if (result.error) {
         return res.status(400).send(result.error.details[0].message);
     }
 
-    let card = await CreditCard.findById(req.body.cardId);
-    if (!card) {
-        res.status(400).send('Invalid card'); 
-    }
-    
-    let newExpense = new Expense({
-        item: req.body.item,
-        total: req.body.total,
-        card: {
-            _id: card._id,
-            card: card.card,
-            balance: card.balance + req.body.total
-        }
-    });
-
-    try {
-        new Fawn.Task()
-            .save('expenses', newExpense)
-            .update('creditcards', { _id: card._id }, {
-                $inc: { balance: +newExpense.total }
-            })
-            .run(); 
-            res.send(newExpense); 
-    } catch(ex) {
-        res.status(500).send('Something failed'); 
-    }
+    CreditCard.findById(req.body.cardId)
+        .then((card) => {
+            if (!card) {
+                return res.status(400).send('Invalid card'); 
+            }
+            let newExpense = new Expense({
+                item: req.body.item,
+                total: req.body.total,
+                card: {
+                    _id: card._id,
+                    card: card.card,
+                    balance: card.balance + req.body.total
+                }
+            }); 
+            new Fawn.Task()
+                .save('expenses', newExpense)
+                .update('creditcards', { _id: card._id }, {
+                    $inc: { balance: +newExpense.total }
+                })
+                .run(); 
+                res.send(newExpense); 
+        })
+        .catch((err) => {
+            res.status(500).send('Something failed'); 
+        });
 });
+
+app.delete('/expenses/:id', (req, res) => {
+    let id = req.params.id;
+    if (!ObjectID.isValid(id)) {
+        return res.status(404).send(); 
+    }
+
+    Expense.findByIdAndRemove(id)
+        .then((expense) => {
+            if (!expense) {
+                return res.status(404).send('Invalid Id'); 
+            }
+        
+            res.send(expense); 
+        }).catch((err) => {
+            res.status(400).send('Something goes wrong', err); 
+        });
+});
+
+app.patch('/expenses/:id', (req, res) => {
+    let id = req.params.id;
+    let body = _.pick(req.body, ['item', 'total']); 
+
+    if (!ObjectID.isValid(id)) {
+        return res.status(404).send('Invalid Id'); 
+    }
+
+    Expense.findByIdAndUpdate(id, {
+        $set: {
+            item: req.body.item,
+            total: req.body.total
+        }
+    }, {
+        new: true
+    }).then((expense) => {
+        if (!expense) {
+            return res.status(404).send(); 
+        }
+
+        res.send(expense); 
+    }).catch((err) => {
+        res.status(400).send(err); 
+    });
+});
+
+
 
 //https://git.heroku.com/polar-reef-69029.git
 let port = process.env.PORT || 3000;
