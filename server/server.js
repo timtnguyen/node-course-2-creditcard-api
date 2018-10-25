@@ -32,7 +32,7 @@ app.use(bodyParser.json());
 app.get('/cards', (req, res) => {
     CreditCard.find()
         .then((cards) => {
-            res.send({cards});
+            res.send(cards);
         }, (err) => {
             res.status(400).send(err);
         });
@@ -64,7 +64,7 @@ app.get('/cards/:id', (req, res) => {
             if (!card) {
                 return res.status(404).send(); 
             }
-            res.send({card}); 
+            res.send(card); 
         }).catch((err) => {
             res.status(400).send(err);
         });
@@ -81,7 +81,7 @@ app.delete('/cards/:id', (req, res) => {
             if (!card) {
                 return res.status(404).send(); 
             }
-            res.send({card}); 
+            res.send(card); 
         }).catch((err) => {
             res.status(400).send('Something wrong', err);
         });
@@ -117,7 +117,7 @@ app.patch('/cards/:id', (req, res) => {
 app.get('/expenses', (req, res) => {
     Expense.find()
         .then((expenses) => {
-            res.send({expenses})
+            res.send(expenses)
         }, (err) => {
             res.status(400).send(err); 
         });
@@ -139,8 +139,7 @@ app.post('/expenses', (req, res) => {
                 total: req.body.total,
                 card: {
                     _id: card._id,
-                    card: card.card,
-                    balance: card.balance + req.body.total
+                    card: card.card
                 }
             }); 
             new Fawn.Task()
@@ -167,7 +166,13 @@ app.delete('/expenses/:id', (req, res) => {
             if (!expense) {
                 return res.status(404).send('Invalid Id'); 
             }
-        
+
+            new Fawn.Task()
+                .update('creditcards', { _id: expense.card._id }, {
+                    $inc: { balance: -expense.total }
+                })
+                .run(); 
+
             res.send(expense); 
         }).catch((err) => {
             res.status(400).send('Something goes wrong', err); 
@@ -205,7 +210,7 @@ app.patch('/expenses/:id', (req, res) => {
 app.get('/payments', (req, res) => {
     Payment.find()
         .then((payment) => {
-            res.send({payment}); 
+            res.send(payment); 
         }, (err) => {
             res.status(400).send(err); 
         });
@@ -227,8 +232,7 @@ app.post('/payments', (req, res) => {
                 amount: req.body.amount,
                 card: {
                     _id: card._id,
-                    card: card.card,
-                    balance: card.balance - req.body.amount
+                    card: card.card
                 }
             });
             new Fawn.Task()
@@ -252,7 +256,17 @@ app.delete('/payments/:id', (req, res) => {
 
     Payment.findByIdAndRemove(id)
         .then((payment) => {
-            res.send(payment); 
+            if (!payment) {
+                return res.status(404).send('Invalid payment'); 
+            }
+
+            new Fawn.Task()
+                .update('creditcards', { _id: payment.card._id }, {
+                    $inc: { balance: +payment.amount }
+                })
+                .run(); 
+
+            res.send(payment);
         })
         .catch((err) => {
             res.status(404).send('Something wrong', err); 
