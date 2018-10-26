@@ -187,6 +187,15 @@ app.patch('/expenses/:id', (req, res) => {
         return res.status(404).send('Invalid Id'); 
     }
 
+    Expense.findById(id)
+        .then((expense) => {
+            new Fawn.Task()
+                .update('creditcards', { _id: expense.card._id }, {
+                    $inc: { balance: -expense.total }
+                })
+                .run(); 
+        })
+
     Expense.findByIdAndUpdate(id, {
         $set: {
             item: req.body.item,
@@ -198,6 +207,12 @@ app.patch('/expenses/:id', (req, res) => {
         if (!expense) {
             return res.status(404).send(); 
         }
+
+        new Fawn.Task()
+            .update('creditcards', { _id: expense.card._id }, {
+                $inc: { balance: +expense.total }
+            })
+            .run(); 
 
         res.send(expense); 
     }).catch((err) => {
@@ -281,6 +296,15 @@ app.patch('/payments/:id', (req, res) => {
         return res.status(404).send('Invalid ID'); 
     }
 
+    Payment.findById(id) 
+        .then((payment) => {
+            new Fawn.Task()
+                .update('creditcards', { _id: payment.card._id }, {
+                    $inc: { balance: +payment.amount }
+                })
+                .run(); 
+        });
+
     Payment.findByIdAndUpdate(id, {
         $set: {
             amount: req.body.amount
@@ -291,6 +315,13 @@ app.patch('/payments/:id', (req, res) => {
         if (!payment) {
             return res.status(404).send()
         }
+
+        new Fawn.Task()
+            .update('creditcards', { _id: payment.card._id }, {
+                $inc: { balance: -payment.amount }
+            })
+            .run(); 
+
         res.send(payment); 
     }).catch((err) => {
         res.status(400).send(err); 
