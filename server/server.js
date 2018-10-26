@@ -13,9 +13,9 @@
 const { ObjectID } = require('mongodb'); 
 const mongoose  = require('./db/mongoose'); 
 const { CreditCard } = require('./models/creditcard');
-const { User } = require('./models/user'); 
 const { Expense, validateExpense } = require('./models/expense'); 
 const { Payment, validatePayment } = require('./models/payment'); 
+const { User, validateUser } = require('./models/user'); 
 const _ = require('lodash'); 
 const Fawn = require('fawn'); 
 
@@ -337,6 +337,36 @@ app.patch('/payments/:id', (req, res) => {
     }).catch((err) => {
         res.status(400).send(err); 
     });       
+});
+
+// USERS ROUTES
+app.get('/users', (req, res) => {
+    User.find().sort({ name: 1 })
+        .then((users) => {
+            res.send(users); 
+        }, (err) => {
+            res.status(400).send(err); 
+        }); 
+});
+
+app.post('/users', (req, res) => {
+    let result = validateUser(req.body);
+    if (result.error) {
+        return res.status(404).send(result.error.details[0].message); 
+    }
+    
+    let body = _.pick(req.body, ['name', 'email', 'password']); 
+    let newUser = new User(body);
+
+    newUser.save()
+        .then(() => {
+            return newUser.generateAuthToken(); 
+            //res.send(user); 
+        }).then((token) => {
+            res.header('x-auth', token).send(newUser);
+        }).catch((err) => {
+            res.status(400).send(err); 
+        });
 });
 
 
