@@ -13,6 +13,12 @@ let creditCardSchema = new mongoose.Schema({
         required: true,
         min: 0,
         max: 50000
+    }, 
+    interest: {
+        type: Number,
+        required: true,
+        min: 0,
+        max: 100
     }
 });
 

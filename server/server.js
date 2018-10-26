@@ -29,6 +29,15 @@ Fawn.init(mongoose);
 
 app.use(bodyParser.json()); 
 
+
+app.get('/', (req, res) => {
+    res.send('HOME');
+});
+
+app.get('/about', (req, res) => {
+    res.send('ABOUT'); 
+});
+
 app.get('/cards', (req, res) => {
     CreditCard.find()
         .then((cards) => {
@@ -41,7 +50,8 @@ app.get('/cards', (req, res) => {
 app.post('/cards', (req, res) => {
     let card = new CreditCard({
         card: req.body.card,
-        balance: req.body.balance
+        balance: req.body.balance,
+        interest: req.body.interest
     });
 
     card.save()
@@ -98,7 +108,8 @@ app.patch('/cards/:id', (req, res) => {
     CreditCard.findByIdAndUpdate(id, {
         $set: {
             card: req.body.card,
-            balance: req.body.balance
+            balance: req.body.balance,
+            interest: req.body.interest
         }
     }, {
         new: true
@@ -164,7 +175,7 @@ app.delete('/expenses/:id', (req, res) => {
     Expense.findByIdAndRemove(id)
         .then((expense) => {
             if (!expense) {
-                return res.status(404).send('Invalid Id'); 
+                return res.status(404).send(); 
             }
 
             new Fawn.Task()
