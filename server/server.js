@@ -1,14 +1,4 @@
-// const env = process.env.NODE_ENV || 'development'; 
-
-// console.log('env ***', env); 
-
-// if (env === 'development') {
-//     process.env.PORT = 3000; 
-//     process.env.MONGO_URI = 'mongodb://localhost/CreditCardApp';
-// } else if (env === 'test') {
-//     process.env.PORT = 3000; 
-//     process.env.MONGO_URI = 'mongodb://localhost/CreditCardAppTest';
-// }
+require('./config/config'); 
 
 const { ObjectID } = require('mongodb'); 
 const mongoose  = require('./db/mongoose'); 
@@ -377,7 +367,7 @@ app.get('/users/me', authenticate, (req, res) => {
 
 
 //https://git.heroku.com/polar-reef-69029.git
-let port = process.env.PORT || 3000;
+let port = process.env.PORT;
 
 app.listen(port, () => {
     console.log(`Server has started on port ${port}`);

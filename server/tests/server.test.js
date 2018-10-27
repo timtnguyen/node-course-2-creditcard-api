@@ -8,11 +8,13 @@ const { CreditCard } = require('../models/creditcard');
 let cards = [{
     _id: new ObjectID(), 
     card: 'Citi Chase', 
-    balance: 1200
+    balance: 1200,
+    interest: 23
 }, {
     _id: new ObjectID(), 
     card: 'CapitalOne',
-    balance: 2100
+    balance: 2100,
+    interest: 12
 }];
 
 beforeEach((done) => {
