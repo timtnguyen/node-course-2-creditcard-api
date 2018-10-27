@@ -63,6 +63,28 @@ userSchema.methods.generateAuthToken = function() {
         });
 };
 
+// Define model method
+userSchema.statics.findByToken = function(token) {
+    let User = this;
+    let decoded;
+
+    try {
+        decoded = jwt.verify(token, 'abc123'); 
+    } 
+    catch(e) {
+        // return new Promise((resolve, reject) => {
+        //     reject(); 
+        // });
+        return Promise.reject();
+    };
+
+    return User.findOne({
+        '_id': decoded._id,
+        'tokens.access': 'auth',
+        'tokens.token': token
+    });
+}
+
 const validateUser = (user) => {
     const schema = {
         name: Joi.string().min(1).max(250).required(), 

@@ -16,6 +16,7 @@ const { CreditCard } = require('./models/creditcard');
 const { Expense, validateExpense } = require('./models/expense'); 
 const { Payment, validatePayment } = require('./models/payment'); 
 const { User, validateUser } = require('./models/user'); 
+const { authenticate } = require('./middleware/authenticate'); 
 const _ = require('lodash'); 
 const Fawn = require('fawn'); 
 
@@ -367,6 +368,11 @@ app.post('/users', (req, res) => {
         }).catch((err) => {
             res.status(400).send(err); 
         });
+});
+
+
+app.get('/users/me', authenticate, (req, res) => {
+    res.send(req.user); 
 });
 
 
