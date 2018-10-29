@@ -351,8 +351,7 @@ app.post('/users', (req, res) => {
 
     newUser.save()
         .then(() => {
-            return newUser.generateAuthToken(); 
-            //res.send(user); 
+            return newUser.generateAuthToken();
         }).then((token) => {
             res.header('x-auth', token).send(newUser);
         }).catch((err) => {
@@ -364,6 +363,21 @@ app.post('/users', (req, res) => {
 app.get('/users/me', authenticate, (req, res) => {
     res.send(req.user); 
 });
+
+// POST /users/login {email, password}
+app.post('/users/login', (req, res) => {
+    let body = _.pick(req.body, ['email', 'password']); 
+    
+    User.findByCredentials(body.email, body.password)
+        .then((user) => {
+            return user.generateAuthToken()
+                .then((token) => {
+                    res.header('x-auth', token).send(user); 
+                });
+        }).catch((err) => {
+            res.status(400).send(); 
+        });
+}); 
 
 
 //https://git.heroku.com/polar-reef-69029.git
