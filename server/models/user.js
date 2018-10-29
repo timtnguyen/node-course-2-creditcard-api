@@ -23,7 +23,6 @@ let userSchema = new mongoose.Schema({
     password: {
         type: String,
         trim: true,
-        unique: true, 
         minlength: 5,
         maxlength: 250
     }, 
