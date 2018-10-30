@@ -1,4 +1,3 @@
-require('./config/config'); 
 
 const { ObjectID } = require('mongodb'); 
 const mongoose  = require('./db/mongoose'); 
@@ -379,9 +378,18 @@ app.post('/users/login', (req, res) => {
         });
 }); 
 
+app.delete('/users/me/token', authenticate, (req, res) => {
+    req.user.removeToken(req.token)
+        .then(() => {
+            res.status(200).send();
+        }, (err) => {
+            res.status(400).send(err); 
+        });
+});
+
 
 //https://git.heroku.com/polar-reef-69029.git
-let port = process.env.PORT;
+let port = process.env.PORT || 3000;
 
 app.listen(port, () => {
     console.log(`Server has started on port ${port}`);
