@@ -26,12 +26,14 @@ let cards = [{
     _id: new ObjectID(), 
     card: 'Citi Chase', 
     balance: 1200,
-    interest: 23
+    interest: 23,
+    _creator: userOneId
 }, {
     _id: new ObjectID(), 
     card: 'CapitalOne',
     balance: 2100,
-    interest: 12
+    interest: 12,
+    _creator: userTwoId
 }];
 
 const populateCreditCards = (done) => {

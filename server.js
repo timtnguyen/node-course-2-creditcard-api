@@ -4,8 +4,8 @@ const mongoose  = require('./db/mongoose');
 const { CreditCard } = require('./models/creditcard');
 const { Expense, validateExpense } = require('./models/expense'); 
 const { Payment, validatePayment } = require('./models/payment'); 
-const { User, validateUser } = require('./models/user'); 
-const { authenticate } = require('./middleware/authenticate'); 
+//const { User, validateUser } = require('./models/user'); 
+//const { authenticate } = require('./middleware/authenticate'); 
 const _ = require('lodash'); 
 const Fawn = require('fawn'); 
 
@@ -17,21 +17,26 @@ let app = express();
 
 Fawn.init(mongoose); 
 
+app.set('view engine', 'ejs');
+
+app.use(bodyParser.urlencoded({ extended: false })); 
 app.use(bodyParser.json()); 
 
 
 app.get('/', (req, res) => {
-    res.send('HOME');
+    res.render('home');
 });
 
 app.get('/about', (req, res) => {
-    res.send('ABOUT'); 
+    res.render('about'); 
 });
 
 app.get('/cards', (req, res) => {
     CreditCard.find()
         .then((cards) => {
-            res.send(cards);
+            res.render('cards', {
+                cards: cards
+            });
         }, (err) => {
             res.status(400).send(err);
         });
@@ -59,7 +64,7 @@ app.get('/cards/:id', (req, res) => {
         return res.status(404).send('Id not valid'); 
     }
 
-    CreditCard.findById(id)
+    CreditCard.findOne({ _id: id })
         .then((card) => {
             if (!card) {
                 return res.status(404).send(); 
@@ -330,62 +335,62 @@ app.patch('/payments/:id', (req, res) => {
 });
 
 // USERS ROUTES
-app.get('/users', (req, res) => {
-    User.find().sort({ name: 1 })
-        .then((users) => {
-            res.send(users); 
-        }, (err) => {
-            res.status(400).send(err); 
-        }); 
-});
+// app.get('/users', (req, res) => {
+//     User.find().sort({ name: 1 })
+//         .then((users) => {
+//             res.send(users); 
+//         }, (err) => {
+//             res.status(400).send(err); 
+//         }); 
+// });
 
-app.post('/users', (req, res) => {
-    let result = validateUser(req.body);
-    if (result.error) {
-        return res.status(404).send(result.error.details[0].message); 
-    }
+// app.post('/users', (req, res) => {
+//     let result = validateUser(req.body);
+//     if (result.error) {
+//         return res.status(404).send(result.error.details[0].message); 
+//     }
     
-    let body = _.pick(req.body, ['name', 'email', 'password']); 
-    let newUser = new User(body);
+//     let body = _.pick(req.body, ['name', 'email', 'password']); 
+//     let newUser = new User(body);
 
-    newUser.save()
-        .then(() => {
-            return newUser.generateAuthToken();
-        }).then((token) => {
-            res.header('x-auth', token).send(newUser);
-        }).catch((err) => {
-            res.status(400).send(err); 
-        });
-});
+//     newUser.save()
+//         .then(() => {
+//             return newUser.generateAuthToken();
+//         }).then((token) => {
+//             res.header('x-auth', token).send(newUser);
+//         }).catch((err) => {
+//             res.status(400).send(err); 
+//         });
+// });
 
 
-app.get('/users/me', authenticate, (req, res) => {
-    res.send(req.user); 
-});
+// app.get('/users/me', authenticate, (req, res) => {
+//     res.send(req.user); 
+// });
 
-// POST /users/login {email, password}
-app.post('/users/login', (req, res) => {
-    let body = _.pick(req.body, ['email', 'password']); 
+// // POST /users/login {email, password}
+// app.post('/users/login', (req, res) => {
+//     let body = _.pick(req.body, ['email', 'password']); 
     
-    User.findByCredentials(body.email, body.password)
-        .then((user) => {
-            return user.generateAuthToken()
-                .then((token) => {
-                    res.header('x-auth', token).send(user); 
-                });
-        }).catch((err) => {
-            res.status(400).send(); 
-        });
-}); 
+//     User.findByCredentials(body.email, body.password)
+//         .then((user) => {
+//             return user.generateAuthToken()
+//                 .then((token) => {
+//                     res.header('x-auth', token).send(user); 
+//                 });
+//         }).catch((err) => {
+//             res.status(400).send(); 
+//         });
+// }); 
 
-app.delete('/users/me/token', authenticate, (req, res) => {
-    req.user.removeToken(req.token)
-        .then(() => {
-            res.status(200).send();
-        }, (err) => {
-            res.status(400).send(err); 
-        });
-});
+// app.delete('/users/me/token', authenticate, (req, res) => {
+//     req.user.removeToken(req.token)
+//         .then(() => {
+//             res.status(200).send();
+//         }, (err) => {
+//             res.status(400).send(err); 
+//         });
+// });
 
 
 //https://git.heroku.com/polar-reef-69029.git
@@ -396,4 +401,4 @@ app.listen(port, () => {
 });
 
 
-module.exports = {app};
+//module.exports = {app};

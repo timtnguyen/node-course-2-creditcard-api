@@ -1,0 +1,9 @@
+<% include partials/header %>
+
+<% cards.forEach((card) => { %>
+    <p><%= card.card %></p>
+    <p><%= card.balance %></p>
+    <p><%= card.interest %></p>
+<% }); %>
+
+<% include partials/footer %>
