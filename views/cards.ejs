@@ -1,9 +1,33 @@
 <% include partials/header %>
 
-<% cards.forEach((card) => { %>
-    <p><%= card.card %></p>
-    <p><%= card.balance %></p>
-    <p><%= card.interest %></p>
-<% }); %>
+<header class="jumbotron bg-jumbo">
+    <div class="container cards">
+        <h1>Welcome To Debt Tracking App</h1>
+        <p>View current credit card and balance</p>
+        <p>
+            <a class="btn btn-lg btn-primary" href="/add">Add new card</a>
+        </p>
+    </div>
+</header>
+<div class="container">
+        
+        <div class="row text-center" style="display:flex; flex-wrap: wrap;">
+            <% cards.forEach((card) => { %>
+                <div class="col-md-3 col-sm-6 mb-3">
+                    <div class="img-thumbnail">
+                        <img src="img/chase.png" class="img-fluid" alt="Responsive image">
+                        <div class="caption">
+                            <h4><%= card.card %></h4>
+                            <p>Balance: <%= (card.balance).toFixed(2) %></p>
+                            <p>Interest Rate: <%= (card.interest).toFixed(2) %></p>
+                        </div>
+                        <p>
+                            <a href="/cards/<%= card.id %>" class="btn btn-primary btn-block">View Info</a>
+                        </p>
+                    </div>
+                </div>
+            <% }); %>     
+        </div>
+    </div>
 
 <% include partials/footer %>
