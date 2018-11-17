@@ -1,0 +1,21 @@
+<% include partials/header %>
+
+<div class="container">
+    <div class="card text-center mx-auto card-details" style="width: 50%">
+        <div class="card-header head-details">
+            <h3>Input Expenses</h3>
+        </div>
+
+        <div class="card-body body-details">
+            <form action="/expenses" method="POST">
+                <input type="text" class="form-control mb-1" name="cardId" value="<%= id %>" placeholder="Card ID">
+                <input type="text" class="form-control mb-1" name="item" placeholder="Enter Item">
+                <input type="number" class="form-control mb-1" name="total" placeholder="Enter amount">
+                <button class="btn btn-danger btn-block mb-1">Submit</button> 
+            </form>
+        </div>
+    </div>
+</div>
+
+
+<% include partials/footer %>

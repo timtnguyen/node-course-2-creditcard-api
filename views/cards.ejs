@@ -5,7 +5,7 @@
         <h1>Welcome To Debt Tracking App</h1>
         <p>View current credit card and balance</p>
         <p>
-            <a class="btn btn-lg btn-primary" href="/add">Add new card</a>
+            <a class="btn btn-lg btn-primary" href="cards/add">Add new card</a>
         </p>
     </div>
 </header>
@@ -21,9 +21,12 @@
                             <p>Balance: <%= (card.balance).toFixed(2) %></p>
                             <p>Interest Rate: <%= (card.interest).toFixed(2) %></p>
                         </div>
-                        <p>
-                            <a href="/cards/<%= card.id %>" class="btn btn-primary btn-block">View Info</a>
-                        </p>
+
+                        <a class="btn btn-info" href="/cards/<%= card.id %>">View Info</a>
+                        <form method="POST" action="/cards/<%= card.id %>?_method=DELETE">
+                            <button class="btn-danger">Delete</button>
+                        </form>
+                        <a class="btn btn-primary" href="/cards/<%= card.id %>/edit">Edit</a>
                     </div>
                 </div>
             <% }); %>     

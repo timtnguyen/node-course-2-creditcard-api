@@ -1,0 +1,19 @@
+<% include partials/header %>
+
+<div class="container">
+    <div class="card text-left mx-auto" style="width: 50%">
+        <p><strong>Card: </strong><%= card.card %></p>
+        <p><strong>Balance: </strong><%= card.balance %></p>
+        <p><strong>Interest: </strong><%= card.interest %>%</p>
+        <div class="row">
+            <a href="/expenses/<%= card.id %>">Add Expenses</a>
+            <a href="/expenses/<%= card.id %>/view">View Expenses</a>
+        </div>
+        <div class="row">
+            <a href="/payments/<%= card.id %>">Add Payments</a>
+            <a href="/payments/<%= card.id %>/view">View Payments</a>
+        </div>
+    </div>
+</div>
+
+<% include partials/footer %>

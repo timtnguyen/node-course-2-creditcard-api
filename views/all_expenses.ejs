@@ -1,0 +1,14 @@
+<% include partials/header %>
+
+<div class="container">
+        <div class="card text-center mx-auto" style="width: 50%">
+             <% expenses.forEach((expense) => { %>
+                    <p><strong>Item: </strong><%= expense.item %></p>
+                    <p><strong>Total: </strong><%= expense.total %></p>
+                    <p><strong>Date: </strong><%= expense.date.getMonth() + '/' + expense.date.getDate() + '/' + expense.date.getFullYear() %></p>
+                    <p>-------------</p>
+             <% }); %>
+        </div>
+</div>
+
+<% include partials/footer %>

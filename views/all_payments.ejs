@@ -1,0 +1,13 @@
+<% include partials/header %>
+
+<div class="container">
+        <div class="card text-center mx-auto" style="width: 50%">
+             <% payments.forEach((payment) => { %>
+                    <p><strong>Amount: </strong><%= payment.amount %></p>
+                    <p><strong>Date: </strong><%= payment.date.getMonth() + '/' + payment.date.getDate() + '/' + payment.date.getFullYear() %></p>
+                    <p>-------------</p>
+             <% }); %>
+        </div>
+</div>
+    
+<% include partials/footer %>
