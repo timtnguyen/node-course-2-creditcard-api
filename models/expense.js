@@ -20,6 +20,7 @@ const ExpenseSchema = new mongoose.Schema({
         type: creditCardSchema,
         required: true
     }, 
+
     date: {
         type: Date,
         default: Date.now

@@ -7,7 +7,7 @@ const bcrypt = require('bcryptjs');
 let userSchema = new mongoose.Schema({
     name: {
         type: String,
-        required: true,
+        required: true, 
         trim: true,
         minlength: 1,
         maxlength: 250
@@ -26,6 +26,13 @@ let userSchema = new mongoose.Schema({
         minlength: 5,
         maxlength: 250
     },
+    password2: {
+        type: String,
+        trim: true,
+        minLength: 5,
+        maxlength: 250
+    },
+
     date: {
         type: Date,
         default: Date.now
@@ -112,7 +119,8 @@ const validateUser = (user) => {
     const schema = {
         name: Joi.string().min(1).max(250).required(), 
         email: Joi.string().email().min(5).max(250).required(),
-        password: Joi.string().min(5).max(250).required()
+        password: Joi.string().min(5).max(250).required(),
+        password2: Joi.string().min(5).max(250).required()
     }
 
     return Joi.validate(user, schema); 

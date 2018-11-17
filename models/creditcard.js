@@ -19,6 +19,10 @@ let creditCardSchema = new mongoose.Schema({
         required: true,
         min: 0,
         max: 100
+    }, 
+    user: {
+        type: String,
+        required: true
     }
 });
 

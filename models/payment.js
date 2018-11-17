@@ -9,10 +9,12 @@ const paymentSchema = new mongoose.Schema({
         min: 0,
         max: 10000
     },
+
     card: {
         type: creditCardSchema,
         required: true
     },
+
     date: {
         type: Date,
         default: Date.now

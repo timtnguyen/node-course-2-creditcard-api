@@ -1,26 +1,36 @@
 
 const { ObjectID } = require('mongodb'); 
 const mongoose  = require('mongoose'); 
+const bcrypt = require('bcryptjs'); 
+const passport = require('passport'); 
 const { CreditCard } = require('./models/creditcard');
 const { Expense, validateExpense } = require('./models/expense'); 
 const { Payment, validatePayment } = require('./models/payment'); 
-//const { User, validateUser } = require('./models/user'); 
-//const { authenticate } = require('./middleware/authenticate'); 
+const { User, validateUser } = require('./models/user'); 
+//const { authenticate } = require('./middleware/authenticate');
+const addTax = require('./interest/interest_calc');  
+const flash = require('connect-flash');
+const session = require('express-session'); 
 const methodOverride = require('method-override'); 
 const _ = require('lodash'); 
 const Fawn = require('fawn'); 
 const path = require('path');
+const { ensureAuthenticated } = require('./helpers/auth'); 
 
 const express = require('express');
 const bodyParser = require('body-parser'); 
 
+// Passport Config
+require('./config/passport')(passport); 
 
+// DB Config
+const db = require('./config/database');
 let app = express(); 
 
 // Map global promise - get rid of warning
 mongoose.Promise = global.Promise;
 // Connect to mongoose 
-mongoose.connect('mongodb://localhost/CreditCardApp', {
+mongoose.connect(db.mongoURI, {
     useNewUrlParser: true
 })
     .then(() => console.log('MongoDB connected...'))
@@ -38,6 +48,28 @@ app.use(bodyParser.json());
 // Method override
 app.use(methodOverride('_method')); 
 
+// Middleware for express-session
+app.use(session({
+    secret: 'secret',
+    resave: true,
+    saveUninitialized: true
+}));
+
+// Passport middleware
+app.use(passport.initialize());
+app.use(passport.session()); 
+
+app.use(flash()); 
+
+// Global variables
+app.use(function(req, res, next) {
+    res.locals.success_msg = req.flash('success_msg');
+    res.locals.error_msg = req.flash('error_msg');
+    res.locals.error = req.flash('error'); 
+    res.locals.user = req.user || null; 
+    next(); 
+});
+
 // Static folder
 app.use(express.static(path.join(__dirname, 'public')));
 
@@ -49,8 +81,8 @@ app.get('/about', (req, res) => {
     res.render('about'); 
 });
 
-app.get('/cards', (req, res) => {
-    CreditCard.find()
+app.get('/cards', ensureAuthenticated, (req, res) => {
+    CreditCard.find({ user: req.user.id })
         .then((cards) => {
             res.render('cards', {
                 cards: cards
@@ -60,27 +92,29 @@ app.get('/cards', (req, res) => {
         });
 });
 
-app.post('/cards', (req, res) => {
+app.post('/cards', ensureAuthenticated, (req, res) => {
     let card = new CreditCard({
         card: req.body.card,
         balance: req.body.balance,
-        interest: req.body.interest
+        interest: req.body.interest,
+        user: req.user.id
     });
 
     card.save()
         .then((card) => {
+            req.flash('success_msg', 'Card has been added');
             res.redirect('cards');
         }, (err) => {
             res.status(400).send(err); 
         });
 }); 
 
-app.get('/cards/add', (req, res) => {
+app.get('/cards/add', ensureAuthenticated, (req, res) => {
     res.render('add');
 });
 
 // bc53c883b86f7048bc3966a
-app.get('/cards/:id', (req, res) => {
+app.get('/cards/:id', ensureAuthenticated, (req, res) => {
     let id = req.params.id;
     if (!ObjectID.isValid(id)) {
         return res.status(404).send('Id not valid'); 
@@ -99,7 +133,7 @@ app.get('/cards/:id', (req, res) => {
         });
 });
 
-app.delete('/cards/:id', (req, res) => {
+app.delete('/cards/:id', ensureAuthenticated, (req, res) => {
     let id = req.params.id;
 
     if (!ObjectID.isValid(id)) {
@@ -110,13 +144,14 @@ app.delete('/cards/:id', (req, res) => {
             if (!card) {
                 return res.status(404).send(); 
             }
+            req.flash('success_msg', 'Card has been remove'); 
             res.redirect('/cards');
         }).catch((err) => {
             res.status(400).send('Something wrong', err);
         });
 });
 
-app.get('/cards/:id/edit', (req, res) => {
+app.get('/cards/:id/edit', ensureAuthenticated, (req, res) => {
     let id = req.params.id;
     if (!ObjectID.isValid(id)) {
         return res.status(404).send(); 
@@ -125,6 +160,7 @@ app.get('/cards/:id/edit', (req, res) => {
     CreditCard.findById(id)
         .then((card) => {
             if (!card) {
+                req.flash('success_msg', 'Card has been successfully updated');
                 res.redirect('/cards'); 
             }
             res.render('edit', {
@@ -133,7 +169,7 @@ app.get('/cards/:id/edit', (req, res) => {
         });
 });
 
-app.patch('/cards/:id', (req, res) => {
+app.patch('/cards/:id', ensureAuthenticated, (req, res) => {
     let id = req.params.id; 
     let body = _.pick(req.body, ['card', 'balance', 'interest']);
 
@@ -161,7 +197,7 @@ app.patch('/cards/:id', (req, res) => {
 
 // EXPENSE ROUTES 
 
-app.get('/expenses', (req, res) => {
+app.get('/expenses', ensureAuthenticated, (req, res) => {
     Expense.find()
         .then((expenses) => {
             res.render('all_expenses', {
@@ -172,14 +208,14 @@ app.get('/expenses', (req, res) => {
         });
 });
 
-app.get('/expenses/:id', (req, res) => {
+app.get('/expenses/:id', ensureAuthenticated, (req, res) => {
     let id = req.params.id;
     res.render('expenses', {
         id: id
     });
 });
 
-app.get('/expenses/:id/view', (req, res) => {
+app.get('/expenses/:id/view', ensureAuthenticated, (req, res) => {
     let id = req.params.id;
 
     if (!ObjectID.isValid(id)) {
@@ -196,7 +232,7 @@ app.get('/expenses/:id/view', (req, res) => {
 });
 
 
-app.post('/expenses', (req, res) => {
+app.post('/expenses', ensureAuthenticated, (req, res) => {
     const result = validateExpense(req.body);
     if (result.error) {
         return res.status(400).send(result.error.details[0].message);
@@ -228,7 +264,7 @@ app.post('/expenses', (req, res) => {
         });
 });
 
-app.delete('/expenses/:id', (req, res) => {
+app.delete('/expenses/:id', ensureAuthenticated, (req, res) => {
     let id = req.params.id;
     if (!ObjectID.isValid(id)) {
         return res.status(404).send(); 
@@ -252,7 +288,7 @@ app.delete('/expenses/:id', (req, res) => {
         });
 });
 
-app.patch('/expenses/:id', (req, res) => {
+app.patch('/expenses/:id', ensureAuthenticated, (req, res) => {
     let id = req.params.id;
     let body = _.pick(req.body, ['item', 'total']); 
 
@@ -295,7 +331,7 @@ app.patch('/expenses/:id', (req, res) => {
 
 // PAYMENT ROUTES
 
-app.get('/payments', (req, res) => {
+app.get('/payments', ensureAuthenticated, (req, res) => {
     Payment.find()
         .then((payments) => {
             res.render('all_payments', {
@@ -306,7 +342,7 @@ app.get('/payments', (req, res) => {
         });
 });
 
-app.get('/payments/:id', (req, res) => {
+app.get('/payments/:id', ensureAuthenticated, (req, res) => {
     let id = req.params.id;
 
     if (!ObjectID.isValid(id)) {
@@ -318,7 +354,7 @@ app.get('/payments/:id', (req, res) => {
     });
 });
 
-app.get('/payments/:id/view', (req, res) => {
+app.get('/payments/:id/view', ensureAuthenticated, (req, res) => {
     let id = req.params.id;
 
     if (!ObjectID.isValid(id)) {
@@ -334,7 +370,7 @@ app.get('/payments/:id/view', (req, res) => {
         });
 });
 
-app.post('/payments', (req, res) => {
+app.post('/payments', ensureAuthenticated, (req, res) => {
     const result = validatePayment(req.body);
     if (result.error) {
         return res.status(400).send(result.error.details[0].message); 
@@ -366,7 +402,7 @@ app.post('/payments', (req, res) => {
         });
 }); 
 
-app.delete('/payments/:id', (req, res) => {
+app.delete('/payments/:id', ensureAuthenticated, (req, res) => {
     let id = req.params.id;
     if (!ObjectID.isValid(id)) {
         return res.status(404).send(); 
@@ -391,7 +427,7 @@ app.delete('/payments/:id', (req, res) => {
         });
 }); 
 
-app.patch('/payments/:id', (req, res) => {
+app.patch('/payments/:id', ensureAuthenticated, (req, res) => {
     let id = req.params.id;
     let body = _.pick(req.body, ['amount']); 
 
@@ -441,24 +477,56 @@ app.patch('/payments/:id', (req, res) => {
 //         }); 
 // });
 
-// app.post('/users', (req, res) => {
-//     let result = validateUser(req.body);
-//     if (result.error) {
-//         return res.status(404).send(result.error.details[0].message); 
-//     }
-    
-//     let body = _.pick(req.body, ['name', 'email', 'password']); 
-//     let newUser = new User(body);
+app.get('/users/login', (req, res) => {
+    res.render('login'); 
+});
 
-//     newUser.save()
-//         .then(() => {
-//             return newUser.generateAuthToken();
-//         }).then((token) => {
-//             res.header('x-auth', token).send(newUser);
-//         }).catch((err) => {
-//             res.status(400).send(err); 
-//         });
-// });
+app.get('/users/register', (req, res) => {
+    res.render('register'); 
+});
+
+app.post('/users/login', (req, res, next) => {
+    passport.authenticate('local', {
+        successRedirect: '/cards',
+        failureRedirect: '/users/login',
+        failureFlash: true
+    })(req, res, next);
+});
+
+app.post('/users/register', (req, res) => {
+    let result = validateUser(req.body); 
+    if (result.error) {
+        return res.status(400).send(result.error.details[0].message); 
+    }
+
+    if (req.body.password !== req.body.password2) {
+        return res.send('Your password do not match'); 
+    }
+
+    let body = _.pick(req.body, ['name', 'email', 'password']); 
+    let newUser = new User(body);
+    
+    bcrypt.genSalt(10, (err, salt) => {
+        bcrypt.hash(newUser.password, salt, (err, hash) => {
+            if (err) throw err; 
+            newUser.password = hash;
+            newUser.save()
+                .then((user) => {
+                    req.flash('success_msg', 'You are now registered');
+                    res.redirect('/users/login'); 
+                })
+                .catch((err) => {
+                    res.status(400).send(err); 
+                });
+        })
+    }); 
+});
+
+app.get('/users/logout', (req, res) => {
+    req.logout(); 
+    req.flash('success_msg', 'You are logout');
+    res.redirect('/users/login'); 
+})
 
 
 // app.get('/users/me', authenticate, (req, res) => {
@@ -489,7 +557,7 @@ app.patch('/payments/:id', (req, res) => {
 //         });
 // });
 
-
+addTax.calculateTax(); 
 //https://git.heroku.com/polar-reef-69029.git
 let port = process.env.PORT || 3000;
 
