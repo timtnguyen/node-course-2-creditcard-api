@@ -112,6 +112,10 @@ app.get('/cards/add', ensureAuthenticated, (req, res) => {
     res.render('add');
 });
 
+app.get('/favicon.ico', (req, res) => {
+    res.status(204); 
+});
+
 // bc53c883b86f7048bc3966a
 app.get('/cards/:id', ensureAuthenticated, (req, res) => {
     let id = req.params.id;
