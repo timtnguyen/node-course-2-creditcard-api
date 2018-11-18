@@ -7,7 +7,6 @@ const { CreditCard } = require('./models/creditcard');
 const { Expense, validateExpense } = require('./models/expense'); 
 const { Payment, validatePayment } = require('./models/payment'); 
 const { User, validateUser } = require('./models/user'); 
-//const { authenticate } = require('./middleware/authenticate');
 const addTax = require('./interest/interest_calc');  
 const flash = require('connect-flash');
 const session = require('express-session'); 
@@ -526,7 +525,7 @@ app.get('/users/logout', (req, res) => {
     req.logout(); 
     req.flash('success_msg', 'You are logout');
     res.redirect('/users/login'); 
-})
+});
 
 
 // app.get('/users/me', authenticate, (req, res) => {
@@ -558,12 +557,9 @@ app.get('/users/logout', (req, res) => {
 // });
 
 addTax.calculateTax(); 
-//https://git.heroku.com/polar-reef-69029.git
+
 let port = process.env.PORT || 3000;
 
 app.listen(port, () => {
     console.log(`Server has started on port ${port}`);
 });
-
-
-//module.exports = {app};
