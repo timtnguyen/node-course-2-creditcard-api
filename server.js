@@ -560,7 +560,7 @@ app.get('/users/logout', (req, res) => {
 //         });
 // });
 
-addTax.calculateTax(); 
+//addTax.calculateTax(); 
 
 let port = process.env.PORT || 3000;
 
