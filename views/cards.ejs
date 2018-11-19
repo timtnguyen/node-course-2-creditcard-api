@@ -15,7 +15,46 @@
             <% cards.forEach((card) => { %>
                 <div class="col-md-3 col-sm-6 mb-3">
                     <div class="img-thumbnail">
-                        <img src="img/chase.png" class="img-fluid" alt="Responsive image">
+                        <% if (card.card === 'Discover') { %>
+                            <img src="img/discover.png" class="img-fluid" alt="Responsive image">
+                        <% } %>
+
+                        <% if (card.card === 'American Express') { %>
+                           <img src="img/american_express.png" class="img-fluid" alt="Responsive image">
+                        <% } %>
+
+                        <% if (card.card === 'Golden1') { %>
+                            <img src="img/golden1.png" class="img-fluid" alt="Responsive image">
+                        <% } %>
+
+                        <% if (card.card === 'Citi Preferred') { %>
+                            <img src="img/citi_preferred.png" class="img-fluid" alt="Responsive image">
+                        <% } %> 
+
+                        <% if (card.card === 'Citi Simplicity') { %>
+                            <img src="img/citi_simplicity.png" class="img-fluid" alt="Responsive image">
+                        <% } %>
+
+                        <% if (card.card === 'Citi Costco') { %>
+                            <img src="img/citi_costco.png" class="img-fluid" alt="Responsive image">
+                        <% } %>
+
+                        <% if (card.card === 'Chase Freedom') { %>
+                            <img src="img/chase_freedom.png" class="img-fluid" alt="Responsive image">
+                        <% } %>
+
+                        <% if (card.card === 'Chase Southwest') { %>
+                            <img src="img/chase_southwest.png" class="img-fluid" alt="Responsive image">
+                        <% } %> 
+ 
+                        <% if (card.card === 'BOA Cash Rewards') { %>
+                            <img src="img/boa_cash.png" class="img-fluid" alt="Responsive image">
+                        <% } %> 
+
+                        <% if (card.card === 'BOA Balance Rewards') { %>
+                            <img src="img/boa_balance.png" class="img-fluid" alt="Responsive image">
+                        <% } %>
+                        
                         <div class="caption">
                             <h4><%= card.card %></h4>
                             <p>Balance: <%= (card.balance).toFixed(2) %></p>
