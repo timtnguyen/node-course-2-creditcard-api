@@ -2,18 +2,20 @@
 
 <div class="container">
     <div class="card text-center mx-auto" style="width: 50%">
-        <a href="./search">Search By Date</a>
-        <a href="./category">Search By Category</a>
-        
+        <% let total = 0; %>
+        <% let category = ''; %> 
+
         <% expenses.forEach((expense) => { %>
             <% if (expense['card']._id.toString() === id.toString()) { %>
-                 <p><strong>Category: </strong><%= expense.category %></p>
                  <p><strong>Item: </strong><%= expense.item %></p>
                  <p><strong>Total: </strong><%= expense.total %></p>
                  <p><strong>Date: </strong><%= expense.date.getMonth() + '/' + expense.date.getDate() + '/' + expense.date.getFullYear() %></p>
+                 <% total += expense.total %>
+                 <% category += expense.category %>
                  <p>-------------</p>
             <% } %>
          <% }); %>
+        <p>Total Expense for <%= category %> is: <%= total %></p>
     </div>
 </div>
 

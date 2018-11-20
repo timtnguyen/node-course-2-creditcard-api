@@ -3,6 +3,13 @@ const { creditCardSchema } = require('./creditcard');
 const Joi = require('joi'); 
 
 const ExpenseSchema = new mongoose.Schema({
+    category: {
+        type: String,
+        trim: true,
+        minlength: 1,
+        maxlength: 250
+    },
+
     item: {
         type: String,
         required: true,
@@ -29,6 +36,7 @@ const ExpenseSchema = new mongoose.Schema({
 
 const validateExpense = (expense) => {
     const schema = {
+        category: Joi.string().min(1).max(250).required(),
         item: Joi.string().min(1).max(250).required(),
         total: Joi.number().min(0).max(10000).required(),
         cardId: Joi.string().required()

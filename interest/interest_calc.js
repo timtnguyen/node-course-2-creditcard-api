@@ -5,7 +5,9 @@ const schedule = require('node-schedule');
 
 module.exports.calculateTax = () => {
     let rule = new schedule.RecurrenceRule();
-    rule.hour = 1; 
+    rule.dayOfWeek = [1,2,3,4,5,6,0];
+    rule.hour = 22;
+    rule.minute = 1;
 
     schedule.scheduleJob(rule, function() {
         console.log(rule);

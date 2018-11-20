@@ -1,0 +1,21 @@
+<% include partials/header %>
+
+<div class="container">
+    <h6>Search By Categories:</h6>
+    <form action="/expenses/<%= id %>/category" method="POST">
+        <select id="category" name="category" class="form-group">
+            <option selected>Choose Category...</option>
+            <option value="groceries">Groceries</option>
+            <option value="gas">Gas</option>
+            <option value="restaurant">Restaurant</option>
+            <option value="bills">Bills</option>
+            <option value="miscellaneous">Miscellaneous</option>
+            <option value="rent">Rent</option>
+            <option value="clothes">Clothes</option>
+        </select>
+        <button class="btn btn-danger btn-block mb-1">Submit</button>
+    </form>
+</div>
+
+
+<% include partials/footer %>

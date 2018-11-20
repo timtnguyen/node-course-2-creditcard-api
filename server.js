@@ -41,6 +41,7 @@ Fawn.init(mongoose);
 
 app.set('view engine', 'ejs');
 
+// Body-parser
 app.use(bodyParser.urlencoded({ extended: false })); 
 app.use(bodyParser.json()); 
 
@@ -219,7 +220,7 @@ app.get('/expenses/:id', ensureAuthenticated, (req, res) => {
 });
 
 app.get('/expenses/:id/view', ensureAuthenticated, (req, res) => {
-    let id = req.params.id;
+    let id = req.params.id; 
 
     if (!ObjectID.isValid(id)) {
         return res.status(404).send(); 
@@ -227,11 +228,69 @@ app.get('/expenses/:id/view', ensureAuthenticated, (req, res) => {
 
     Expense.find()
        .then((expenses) => {
-          res.render('card_expenses', {
-              id: id,
-              expenses: expenses
-          });
+            res.render('card_expenses', {
+                id: id,
+                expenses: expenses
+            });
        });
+});
+
+app.get('/expenses/:id/search', ensureAuthenticated, (req, res) => {
+    let id = req.params.id;
+
+    res.render('search', {
+        id: id
+    }); 
+});
+
+app.get('/expenses/:id/category', ensureAuthenticated, (req, res) => {
+    let id = req.params.id;
+
+    res.render('category', {
+        id: id
+    });
+});
+
+app.post('/expenses/:id/search', ensureAuthenticated, (req, res) => {
+    let id = req.params.id;
+    let body = _.pick(req.body, ['from_month', 'from_date', 'from_year', 'to_month', 'to_date', 'to_year']); 
+    
+    if (!ObjectID.isValid(id)) {
+        return res.status(404).send(); 
+    }
+
+    Expense.find({ 
+        date: { $gte: new Date(body.from_year, body.from_month, body.from_date),
+        $lt: new Date(body.to_year, body.to_month, body.to_date) }
+    }).then((expenses) => {
+            res.render('search_expenses', {
+                id: id,
+                expenses: expenses
+            });
+        }, (err) => {
+            console.log(err);
+        });
+});
+
+app.post('/expenses/:id/category', ensureAuthenticated, (req, res) => {
+    let id = req.params.id;
+    let body = req.body; 
+    
+    if (!ObjectID.isValid(id)) {
+        return res.status(404).send(); 
+    }
+    
+    if (body.category === body.category) {
+        Expense.find({ category: body.category })
+            .then((expenses) => {
+                res.render('search_category', {
+                    id: id, 
+                    expenses: expenses
+                });
+            }, (err) => {
+                console.log('Unable to find', err); 
+            }); 
+    }
 });
 
 
@@ -247,6 +306,7 @@ app.post('/expenses', ensureAuthenticated, (req, res) => {
                 return res.status(400).send('Invalid card'); 
             }
             let newExpense = new Expense({
+                category: req.body.category,
                 item: req.body.item,
                 total: req.body.total,
                 card: {
@@ -266,6 +326,7 @@ app.post('/expenses', ensureAuthenticated, (req, res) => {
             res.status(500).send('Something failed'); 
         });
 });
+
 
 app.delete('/expenses/:id', ensureAuthenticated, (req, res) => {
     let id = req.params.id;

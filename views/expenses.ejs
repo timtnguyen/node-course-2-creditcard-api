@@ -9,8 +9,18 @@
         <div class="card-body body-details">
             <form action="/expenses" method="POST">
                 <input type="text" class="form-control mb-1" name="cardId" value="<%= id %>" placeholder="Card ID">
+                <select id="category" name="category">
+                    <option selected>Select Category...</option>
+                    <option value="groceries">Groceries</option>
+                    <option value="gas">Gas</option>
+                    <option value="restaurant">Restaurant</option>
+                    <option value="bills">Bills</option>
+                    <option value="miscellaneous">Miscellaneous</option>
+                    <option value="rent">Rent</option>
+                    <option value="clothe">Clothes</option>
+                </select>
                 <input type="text" class="form-control mb-1" name="item" placeholder="Enter Item">
-                <input type="number" class="form-control mb-1" name="total" placeholder="Enter amount">
+                <input type="number" class="form-control mb-1" name="total" step="0.01" placeholder="Enter amount">
                 <button class="btn btn-danger btn-block mb-1">Submit</button> 
             </form>
         </div>

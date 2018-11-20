@@ -10,6 +10,7 @@
     </div>
 </header>
 <div class="container">
+    <% let total= 0; %>
         
         <div class="row text-center" style="display:flex; flex-wrap: wrap;">
             <% cards.forEach((card) => { %>
@@ -54,6 +55,8 @@
                         <% if (card.card === 'BOA Balance Rewards') { %>
                             <img src="img/boa_balance.png" class="img-fluid" alt="Responsive image">
                         <% } %>
+
+                        <% total += card.balance %>
                         
                         <div class="caption">
                             <h4><%= card.card %></h4>
@@ -68,8 +71,10 @@
                         <a class="btn btn-primary" href="/cards/<%= card.id %>/edit">Edit</a>
                     </div>
                 </div>
-            <% }); %>     
+            <% }); %>  
+           
         </div>
+    <p>Total Debt: <%= total %></p>
     </div>
 
 <% include partials/footer %>
